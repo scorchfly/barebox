@@ -1,0 +1,52 @@
+#
+#  Copyright (C) 2015 Steffen Trumtrar <s.trumtrar@pengutronix.de>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+language: c
+
+cache:
+ - apt
+
+before_install:
+ - sudo apt-get update -qq
+
+install:
+ - sudo apt-get -y --force-yes install gcc-arm-linux-gnueabi lzop
+
+before_script:
+  - export BUILD_NCPUS="`grep processor /proc/cpuinfo | wc -l`"
+  - $CONFIG -j $BUILD_NCPUS
+
+script:
+  - export BUILD_NCPUS="`grep processor /proc/cpuinfo | wc -l`"
+  - echo "BUILD on" $BUILD_NCPUS "cpu's"
+  - $TEST_CMD -j $BUILD_NCPUS
+
+matrix:
+  include:
+    - env:
+        - CROSS_COMPILE="arm-linux-gnueabi-"
+          ARCH="arm"
+          CONFIG="make socfpga_defconfig"
+          TEST_CMD="make"
+    - env:
+        - CROSS_COMPILE="arm-linux-gnueabi-"
+          ARCH="arm"
+          CONFIG="make socfpga-xload_defconfig"
+          TEST_CMD="make"
+
+notifications:
+  email: false
